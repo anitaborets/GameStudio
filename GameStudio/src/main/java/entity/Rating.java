@@ -1,6 +1,7 @@
-package minesweeper.entity;
+package entity;
 
-import java.sql.Date;
+import exceptions.RatingException;
+
 import java.sql.Timestamp;
 
 public class Rating {
@@ -8,7 +9,7 @@ public class Rating {
     private String player;
     private String game;
     private int rating;
-    private Timestamp date;
+    private Timestamp ratedOn;
 
     public int getId() {
         return id;
@@ -38,15 +39,20 @@ public class Rating {
         return rating;
     }
 
-    public void setRating(int rating) {
-        this.rating = rating;
+    public void setRating(int rating) throws RatingException {
+        if(rating>=0 && rating<6) {
+            this.rating = rating;
+        }
+        else {
+            throw new RatingException("Rating may be from 0 to 5 only");
+        }
     }
 
-    public Timestamp getDate() {
-        return date;
+    public Timestamp getRatedOn() {
+        return ratedOn;
     }
 
-    public void setDate(Timestamp date) {
-        this.date = date;
+    public void setRatedOn(Timestamp ratedOn) {
+        this.ratedOn = ratedOn;
     }
 }

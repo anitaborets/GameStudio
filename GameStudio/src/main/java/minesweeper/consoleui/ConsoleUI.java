@@ -2,35 +2,32 @@ package minesweeper.consoleui;
 
 import minesweeper.core.Field;
 import minesweeper.core.Tile;
-import minesweeper.entity.Score;
-import minesweeper.exceptions.WrongFormatException;
+import entity.Comment;
+import entity.Rating;
+import entity.Score;
+import exceptions.CommentException;
+import exceptions.RatingException;
+import exceptions.WrongFormatException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Formatter;
-import java.util.List;
-import java.util.Locale;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static entity.Constants.*;
 import static java.util.Objects.isNull;
-import static minesweeper.Minesweeper.scoreService;
-import static minesweeper.Minesweeper.userName;
+import static minesweeper.Minesweeper.*;
+import static service.ScoreServiceJDBC.getPlayingSeconds;
 
 /**
  * Console user interface.
  */
 public class ConsoleUI implements UserInterface {
-    private static final String GAME_OVER = "GAME OVER!";
-    private static final String WIN = "YOU ARE WIN!";
-
-
     private Field field;
-
     private final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
     private String readLine() {
@@ -49,8 +46,6 @@ public class ConsoleUI implements UserInterface {
     @Override
     public void newGameStarted(Field field) {
         this.field = field;
-
-
         do {
             update();
             processInput();
@@ -58,14 +53,13 @@ public class ConsoleUI implements UserInterface {
                 case FAILED -> {
                     update();
                     System.out.println(GAME_OVER);
-                    inputScore();
+                    getScore();
                     System.exit(0);
                 }
                 case SOLVED -> {
                     System.out.println(WIN);
-                    inputScore();
-
-
+                    setScore();
+                    getScore();
                 }
             }
         } while (true);
@@ -78,7 +72,6 @@ public class ConsoleUI implements UserInterface {
     public void update() {
         Formatter formatter = new Formatter();
         String closedTile = "\u2618";
-
 
         System.out.print("  ");
         System.out.println("Pocet min: " + field.getMineCount());
@@ -114,31 +107,35 @@ public class ConsoleUI implements UserInterface {
         builder.append("Please enter your selection: ").append("\n")
                 .append("<EXIT> - EXIT").append("\n")
                 .append("<MA1> - MARK A1").append("\n")
-                .append("<OB4> - OPEN B4");
+                .append("<OB4> - OPEN B4").append("\n")
+                .append("<com> - input comment").append("\n")
+                .append("<rat> - input rating of this game");
         System.out.println(builder);
     }
 
     @Override
-    public void inputScore() {
-        Score score = new Score();
-        score.setPlayer(userName);
-        //TODO
-        score.setScore(1);
-        score.setPlayedOn(Timestamp.valueOf(LocalDateTime.now()));
-        scoreService.insertScore(score);
+    public void getScore() {
         List<Score> scoreList = scoreService.getBestScores();
         for (Score sc : scoreList) {
             System.out.println(sc);
         }
     }
 
-    /**
-     * Processes user input.
-     * Reads line from console and does the action on a playing field according to input string.
-     */
+    @Override
+    public void setScore() {
+        Score score = new Score();
+        score.setPlayer(userName);
+        score.setGame(MINESWEEPER);
+        score.setScore(getPlayingSeconds(startMillis));
+        score.setPlayedOn(Timestamp.valueOf(LocalDateTime.now()));
+        scoreService.insertScore(score);
+    }
+
+
     private void processInput() {
         Scanner input = new Scanner(System.in);
         String choice = input.nextLine();
+
         try {
             handleInput(choice);
         } catch (WrongFormatException e) {
@@ -150,6 +147,26 @@ public class ConsoleUI implements UserInterface {
             System.out.println("GOOD BY!");
             System.exit(0);
         }
+
+        if (choice.equalsIgnoreCase("com")) {
+            try {
+                inputComment();
+                return;
+            } catch (CommentException e) {
+                return;
+            }
+        }
+
+        if (choice.equalsIgnoreCase("rat")) {
+            try {
+                setRating();
+                System.out.println("rating " + rating.getAverageRating(MINESWEEPER));
+                return;
+            } catch (RatingException e) {
+                return;
+            }
+        }
+
 
         char[] symbols = choice.toUpperCase(Locale.ROOT).toCharArray();
         char state = Character.toUpperCase(symbols[0]);
@@ -164,7 +181,7 @@ public class ConsoleUI implements UserInterface {
 
     private static void handleInput(String input) throws WrongFormatException {
         if (!isNull(input) && !input.isEmpty()) {
-            Pattern pattern = Pattern.compile("([oOmM])([a-iA-I])([0-8])|[EXIT]|[exit]");
+            Pattern pattern = Pattern.compile("([oOmM])([a-iA-I])([0-8])|[EXIT]|[exit]|[com]");
             Matcher matcher = pattern.matcher(input);
 
             if (!matcher.find()) {
@@ -173,5 +190,51 @@ public class ConsoleUI implements UserInterface {
         }
     }
 
+    private void setRating() throws RatingException {
+        System.out.println("Input rating for " + MINESWEEPER + ": number from 0 to 5");
+        int input;
+        input = Integer.parseInt(Objects.requireNonNull(readLine()));
 
+        if (input >= 0 && input <= 5) {
+            Rating tempRating = new Rating();
+            tempRating.setPlayer(userName);
+            tempRating.setRating(input);
+            tempRating.setGame(MINESWEEPER);
+            tempRating.setRatedOn(Timestamp.valueOf(LocalDateTime.now()));
+            rating.setRating(tempRating);
+        } else {
+            System.out.println("Incorrect format");
+            update();
+        }
+    }
+
+    private void inputComment() throws CommentException {
+        System.out.println("Input comment");
+        String input;
+        input = readLine();
+        List<Comment> comments = null;
+
+        Comment com = new Comment();
+        com.setPlayer(userName);
+        com.setGame(MINESWEEPER);
+        com.setComment(input);
+        com.setCommentedOn(Timestamp.valueOf(LocalDateTime.now()));
+        try {
+            commentService.addComment(com);
+        } catch (CommentException e) {
+            update();
+        }
+        try {
+            comments = commentService.getComments(MINESWEEPER);
+        } catch (CommentException e) {
+            update();
+        }
+
+        assert comments != null;
+        for (Comment comment : comments) {
+            System.out.println(comment);
+        }
+    }
 }
+
+

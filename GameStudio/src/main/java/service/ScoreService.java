@@ -1,6 +1,6 @@
-package minesweeper.service;
+package service;
 
-import minesweeper.entity.Score;
+import entity.Score;
 
 import java.util.List;
 

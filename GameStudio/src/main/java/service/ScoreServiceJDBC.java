@@ -1,8 +1,8 @@
-package minesweeper.service;
+package service;
 
 import com.zaxxer.hikari.HikariDataSource;
-import minesweeper.entity.Score;
-import minesweeper.exceptions.ScoreException;
+import entity.Score;
+import exceptions.ScoreException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,22 +10,21 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static minesweeper.Constants.*;
-import static minesweeper.service.CommentServiceJDBS.*;
-import static minesweeper.service.HikariCPDataSource.getHikariDataSource;
+import static entity.Constants.*;
+import static service.HikariCPDataSource.getHikariDataSource;
 
 public class ScoreServiceJDBC implements ScoreService {
-    private static final String CREATE = "CREATE TABLE IF NOT EXISTS score (id INT PRIMARY KEY Generated Always as Identity, player VARCHAR(32) NOT NULL, score INT NOT NULL, playedOn TIMESTAMP)";
-    private static final String GET_ALL = "SELECT * FROM score LIMIT 10";
+    private static final String CREATE = "CREATE TABLE IF NOT EXISTS score (id INT PRIMARY KEY Generated Always as Identity, player VARCHAR(32) NOT NULL,  game VARCHAR(32) NOT NULL, score INT NOT NULL, playedOn TIMESTAMP)";
+    private static final String GET_ALL = "SELECT * FROM score ORDER BY score desc LIMIT 10";
     private static final String DELETE = "TRUNCATE score";
-    private static final String INSERT = "INSERT INTO score (player,score,playedOn) VALUES (?, ?, ?)";
+    private static final String INSERT = "INSERT INTO score (player,game,score,playedOn) VALUES (?, ?, ?, ?)";
     Connection con = null;
     PreparedStatement pst = null;
     HikariDataSource ds = getHikariDataSource();
     Logger LOGGER = Logger.getLogger(ScoreServiceJDBC.class.getName());
 
     public void createScoreTable() {
-        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD);) {
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
             Statement stmt = con.createStatement();
             stmt.executeUpdate(CREATE);
         } catch (SQLException e) {
@@ -37,13 +36,13 @@ public class ScoreServiceJDBC implements ScoreService {
     public int insertScore(Score score) {
         int count = 0;
 
-        try {
-            con = ds.getConnection();
+        try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)){
+           // con = ds.getConnection();
             pst = con.prepareStatement(INSERT);
             pst.setString(1, score.getPlayer());
-            pst.setInt(2, score.getScore());
-            pst.setTimestamp(3, new Timestamp(score.getPlayedOn().getTime()));
-
+            pst.setString(2, score.getGame());
+            pst.setInt(3, score.getScore());
+            pst.setTimestamp(4, new Timestamp(score.getPlayedOn().getTime()));
             count = pst.executeUpdate();
             System.out.println(count);
 
@@ -63,15 +62,15 @@ public class ScoreServiceJDBC implements ScoreService {
                 Score score = new Score();
                 score.setId(results.getInt(1));
                 score.setPlayer(results.getString(2));
-                score.setScore(results.getInt(3));
-                score.setPlayedOn(results.getTimestamp(4));
+                score.setGame(results.getString(3));
+                score.setScore(results.getInt(4));
+                score.setPlayedOn(results.getTimestamp(5));
                 scores.add(score);
-                System.out.println(score);
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
-        return null;
+        return scores;
     }
 
     public void reset() throws ScoreException {
@@ -83,5 +82,9 @@ public class ScoreServiceJDBC implements ScoreService {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             throw new ScoreException(e.getMessage(), e.getMessage());
         }
+    }
+
+    public static int getPlayingSeconds(long startMillis) {
+        return (int) ((System.currentTimeMillis() - startMillis) / 1000);
     }
 }

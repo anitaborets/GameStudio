@@ -7,5 +7,7 @@ public interface UserInterface {
 
     void update();
 
-    void inputScore();
+    void getScore();
+
+    void setScore();
 }
