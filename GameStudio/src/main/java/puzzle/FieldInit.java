@@ -1,11 +1,40 @@
 package puzzle;
 
+import org.apache.commons.lang3.ArrayUtils;
+import service.CommentServiceJDBS;
+
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FieldInit {
-    static void fillArraysByRandomNumbers(int[][] grid, String[][] displayGrid) {
+    final static Logger LOGGER = Logger.getLogger(FieldInit.class.getName());
 
-        //base init
+    static void fillArraysByRandomNumbers(int[][] grid, String[][] displayGrid) {
+        if (!ArrayUtils.isEmpty(grid) && (!ArrayUtils.isEmpty(displayGrid))) {
+            //base init
+            baseArrayInit(grid, displayGrid);
+
+            //shuffle
+            do {
+                initRandomTiles(grid);
+            }
+            while (isSolved(grid));
+
+            //output
+            displayInit(grid, displayGrid);
+        }
+    }
+
+    public static void displayInit(int[][] grid, String[][] displayGrid) {
+        for (int row = 0; row <= grid.length - 1; row++) {
+            for (int col = 0; col <= grid[0].length - 1; col++) {
+                displayGrid[row + 1][col + 1] = Integer.toString(grid[row][col]);
+            }
+        }
+    }
+
+    public static void baseArrayInit(int[][] grid, String[][] displayGrid) {
         int i = 0;
         for (int row = 0; row <= grid.length - 1; row++) {
             for (int col = 0; col <= grid[0].length - 1; col++) {
@@ -14,23 +43,9 @@ public class FieldInit {
                 i++;
             }
         }
-
-        //random shuffle
-        do {
-            initRandomTiles(grid);
-        }
-        while (isSolved(grid));
-
-
-        //output
-        for (int row = 0; row <= grid.length - 1; row++) {
-            for (int col = 0; col <= grid[0].length - 1; col++) {
-                displayGrid[row + 1][col + 1] = Integer.toString(grid[row][col]);
-            }
-        }
     }
 
-    private static void initRandomTiles(int[][] grid) {
+    public static void initRandomTiles(int[][] grid) {
         int rndRowFrom;
         int rndRowDest;
         int rndColDest;

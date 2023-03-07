@@ -32,7 +32,10 @@ public class PuzzleFifteen implements Externalizable {
     static Scanner choiceScanner = new Scanner(System.in);
     static String choice;
 
-    public static void main(String[] args) throws IOException {
+    public PuzzleFifteen() throws IOException {
+
+
+   // public static void main(String[] args) throws IOException {
 
         int rowBlank = 0;
         int colBlank = 0;

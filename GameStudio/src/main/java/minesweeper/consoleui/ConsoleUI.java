@@ -38,11 +38,6 @@ public class ConsoleUI implements UserInterface {
         }
     }
 
-    /**
-     * Starts the game.
-     *
-     * @param field field of mines and clues
-     */
     @Override
     public void newGameStarted(Field field) {
         this.field = field;

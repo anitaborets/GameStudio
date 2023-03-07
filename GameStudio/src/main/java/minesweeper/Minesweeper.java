@@ -38,8 +38,9 @@ public class Minesweeper {
     /**
      * Constructor.
      */
-    public Minesweeper() {
-
+    public Minesweeper() throws RatingException {
+        System.out.println("WELCOME TO MINESWEEPER");
+        System.out.println("rating " + rating.getAverageRating(MINESWEEPER));
         userInterface = new ConsoleUI();
         System.out.println("Select level of game");
         StringBuilder builder = new StringBuilder();
@@ -74,8 +75,6 @@ public class Minesweeper {
         Field field = new Field(settings.getRowCount(), settings.getColumnCount(), settings.getMineCount());
         userName = System.getProperty("user.name");
 
-        System.out.println(userName + ", WELCOME TO MINESWEEPER");
-
         // System.out.println("Input your mail please if you want");
         //  try {
         //  inputEmail();
@@ -107,7 +106,7 @@ public class Minesweeper {
 
         System.out.println("rating " + rating.getAverageRating(MINESWEEPER));
 
-        new Minesweeper();
+      //  new Minesweeper();
 
     }
 
