@@ -66,7 +66,7 @@ public class PuzzleFifteen implements Externalizable {
                 .append("<rat> - input rating of this game and exit");
     }
 
-git a//    toto je strasne dlha metoda, treba to rozdelit na male podmetody, kazda urcena na jeden typ akcie
+//    toto je strasne dlha metoda, treba to rozdelit na male podmetody, kazda urcena na jeden typ akcie
     private static void gameStart(int rowBlank, int colBlank, int move, boolean correctChoice, int[][] grid, String[][] displayGrid, int[][] wonGrid) throws IOException {
         char rowChoiceChar;
         int rowChoice;
