@@ -1,15 +1,16 @@
 package minesweeper;
 
+import exceptions.CommentException;
+import exceptions.ScoreException;
 import minesweeper.consoleui.ConsoleUI;
 import minesweeper.core.Field;
 import exceptions.RatingException;
 import exceptions.WrongFormatException;
-import service.CommentServiceJDBS;
+import service.CommentServiceJDBC;
 import service.RatingServiceJDBC;
 import service.ScoreServiceJDBC;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -31,8 +32,8 @@ public class Minesweeper {
     public static String userName;
     public static long startMillis;
     public static final ScoreServiceJDBC scoreService = new ScoreServiceJDBC();
-    public static final CommentServiceJDBS commentService = new CommentServiceJDBS();
-    public static final RatingServiceJDBC rating = new RatingServiceJDBC();
+    public static final CommentServiceJDBC commentService = new CommentServiceJDBC();
+    public static final RatingServiceJDBC ratingService = new RatingServiceJDBC();
     Logger LOGGER = Logger.getLogger(Minesweeper.class.getName());
 
     /**
@@ -40,14 +41,15 @@ public class Minesweeper {
      */
     public Minesweeper() throws RatingException {
         System.out.println("WELCOME TO MINESWEEPER");
-        System.out.println("rating " + rating.getAverageRating(MINESWEEPER));
+        System.out.println("rating " + ratingService.getAverageRating(MINESWEEPER));
         userInterface = new ConsoleUI();
         System.out.println("Select level of game");
         StringBuilder builder = new StringBuilder();
         builder.append("Please enter your selection: ").append("\n")
                 .append("<B> - BEGINNER").append("\n")
                 .append("<I> -INTERMEDIATE").append("\n")
-                .append("<E> - EXPERT").append("\n");
+                .append("<E> - EXPERT").append("\n")
+                .append("<L> - LOAD").append("\n");
         System.out.println(builder);
         Scanner input = new Scanner(System.in);
         String choice = input.nextLine();
@@ -56,7 +58,14 @@ public class Minesweeper {
             case "B" -> settings = BEGINNER;
             case "I" -> settings = INTERMEDIATE;
             case "E" -> settings = EXPERT;
-            default -> settings = BEGINNER;
+            default -> {
+                try {
+                    settings = Settings.load();
+                } catch (IOException | ClassNotFoundException e) {
+                    LOGGER.log(Level.WARNING, e.getMessage());
+                    settings = BEGINNER;
+                }
+            }
         }
         try {
             settings.save();
@@ -64,15 +73,10 @@ public class Minesweeper {
             LOGGER.log(Level.WARNING, e.getMessage());
         }
 
-        try {
-            settings = Settings.load();
-        } catch (IOException | ClassNotFoundException e) {
-            LOGGER.log(Level.WARNING, e.getMessage());
-            settings = BEGINNER;
-        }
-
-
-        Field field = new Field(settings.getRowCount(), settings.getColumnCount(), settings.getMineCount());
+        Field field = new Field(
+                settings.getRowCount(),
+                settings.getColumnCount(),
+                settings.getMineCount());
         userName = System.getProperty("user.name");
 
         // System.out.println("Input your mail please if you want");
@@ -99,12 +103,20 @@ public class Minesweeper {
      *
      * @param args arguments
      */
-    public static void main(String[] args) throws WrongFormatException, SQLException, RatingException {
-        scoreService.createScoreTable();
-        commentService.createCommentTable();
-        rating.createRatingTable();
+    public static void main(String[] args) {
+        try {
+            scoreService.createScoreTable();
+            commentService.createCommentTable();
+            ratingService.createRatingTable();
+        } catch(ScoreException | CommentException | RatingException e) {
+            System.out.println("Couldn't create database tables, please check your database connection.");
+        }
 
-        System.out.println("rating " + rating.getAverageRating(MINESWEEPER));
+        try {
+            System.out.println("rating " + ratingService.getAverageRating(MINESWEEPER));
+        } catch (RatingException e) {
+            System.out.println("Could not get average rating for " + MINESWEEPER);
+        }
 
       //  new Minesweeper();
 

@@ -1,5 +1,6 @@
 package minesweeper.consoleui;
 
+import exceptions.ScoreException;
 import minesweeper.core.Field;
 import minesweeper.core.Tile;
 import entity.Comment;
@@ -110,20 +111,27 @@ public class ConsoleUI implements UserInterface {
 
     @Override
     public void getScore() {
-        List<Score> scoreList = scoreService.getBestScores();
-        for (Score sc : scoreList) {
-            System.out.println(sc);
+        try {
+            List<Score> scoreList = scoreService.getBestScores(MINESWEEPER);
+            for (Score sc : scoreList) {
+                System.out.println(sc);
+            }
+        } catch(ScoreException e) {
+            System.out.println("Couldn't get scores, check database connection.");
         }
     }
 
     @Override
     public void setScore() {
-        Score score = new Score();
-        score.setPlayer(userName);
-        score.setGame(MINESWEEPER);
-        score.setScore(getPlayingSeconds(startMillis));
-        score.setPlayedOn(Timestamp.valueOf(LocalDateTime.now()));
-        scoreService.insertScore(score);
+        try {
+            Score score = new Score(
+                    userName, MINESWEEPER,
+                    getPlayingSeconds(startMillis),
+                    Timestamp.valueOf(LocalDateTime.now()));
+            scoreService.insertScore(score);
+        } catch(ScoreException e) {
+            System.out.println("Couldn't save your score, check database connection.");
+        }
     }
 
 
@@ -155,7 +163,7 @@ public class ConsoleUI implements UserInterface {
         if (choice.equalsIgnoreCase("rat")) {
             try {
                 setRating();
-                System.out.println("rating " + rating.getAverageRating(MINESWEEPER));
+                System.out.println("rating " + ratingService.getAverageRating(MINESWEEPER));
                 return;
             } catch (RatingException e) {
                 return;
@@ -196,7 +204,7 @@ public class ConsoleUI implements UserInterface {
             tempRating.setRating(input);
             tempRating.setGame(MINESWEEPER);
             tempRating.setRatedOn(Timestamp.valueOf(LocalDateTime.now()));
-            rating.setRating(tempRating);
+            ratingService.setRating(tempRating);
         } else {
             System.out.println("Incorrect format");
             update();

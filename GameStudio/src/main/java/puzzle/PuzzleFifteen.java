@@ -5,6 +5,7 @@ import entity.Rating;
 import entity.Score;
 import exceptions.CommentException;
 import exceptions.RatingException;
+import exceptions.ScoreException;
 
 import java.io.*;
 import java.sql.Timestamp;
@@ -32,11 +33,9 @@ public class PuzzleFifteen implements Externalizable {
     static Scanner choiceScanner = new Scanner(System.in);
     static String choice;
 
+//    v triede sa ti miesa logika s vypismi do konzoly, preto je ten kod tazsie citatelny a pochopitelny
     public PuzzleFifteen() throws IOException {
-
-
    // public static void main(String[] args) throws IOException {
-
         int rowBlank = 0;
         int colBlank = 0;
 
@@ -58,7 +57,7 @@ public class PuzzleFifteen implements Externalizable {
     }
 
     private static void startDialog() {
-        dialog.append("<MOVE> - Choice to move <A1>")
+        dialog.append("<MOVE> - Choice to move <A1>") //vo 15puzzle by mal byt move pomocou wsad, pozri opravenu branchu v projekte Risa Andrejku
                 .append("\n")
                 .append("<EXIT> - EXIT").append("\n")
                 .append("<SAVE> - SAVE AND EXIT").append("\n")
@@ -67,6 +66,7 @@ public class PuzzleFifteen implements Externalizable {
                 .append("<rat> - input rating of this game and exit");
     }
 
+git a//    toto je strasne dlha metoda, treba to rozdelit na male podmetody, kazda urcena na jeden typ akcie
     private static void gameStart(int rowBlank, int colBlank, int move, boolean correctChoice, int[][] grid, String[][] displayGrid, int[][] wonGrid) throws IOException {
         char rowChoiceChar;
         int rowChoice;
@@ -97,6 +97,9 @@ public class PuzzleFifteen implements Externalizable {
             FieldInit.fillArraysByRandomNumbers(grid, displayGrid);
         }
 
+
+//        na toto by som asi osobitnu triedu nerobila, bud z toho spravit len metodu, alebo si drzat
+//        pozicie prazdnej tile v tejto triede
         Position position = new Position(rowBlank, colBlank, grid, displayGrid).zeroOutput();
         rowBlank = position.getRowBlank();
         colBlank = position.getColBlank();
@@ -144,7 +147,7 @@ public class PuzzleFifteen implements Externalizable {
             if (choice.equalsIgnoreCase("rat")) {
                 try {
                     setRating();
-                    System.out.println("rating " + rating.getAverageRating(PUZZLE_FIFTEEN));
+                    System.out.println("rating " + ratingService.getAverageRating(PUZZLE_FIFTEEN));
                     return;
                 } catch (RatingException e) {
                     return;
@@ -191,22 +194,26 @@ public class PuzzleFifteen implements Externalizable {
     }
 
     public static void getScore() {
-        List<Score> scoreList = scoreService.getBestScores();
-        List<Score> scoreListPuzzle = scoreList.stream().filter(score -> score.getGame().equals(PUZZLE_FIFTEEN)).toList();
-        if (!scoreListPuzzle.isEmpty()) {
-            for (Score sc : scoreListPuzzle) {
-                System.out.println(sc);
-            }
+        try {
+//            vacsinou je efektivnejsie nechat databazu vyfiltrovat data, ako cez Javu
+            List<Score> scoreList = scoreService.getBestScores(PUZZLE_FIFTEEN);
+            //podmienku netreba, lebo ak bude empty, tak sa proste nevypise nic
+            scoreList.forEach(System.out::println);
+        } catch(ScoreException e) {
+            System.out.println("Couldn't get scores, check database connection.");
         }
     }
 
     public static void setScore() {
-        Score score = new Score();
-        score.setPlayer(userName);
-        score.setGame(PUZZLE_FIFTEEN);
-        score.setScore(getPlayingSeconds(startMillis));
-        score.setPlayedOn(Timestamp.valueOf(LocalDateTime.now()));
-        scoreService.insertScore(score);
+        try {
+            Score score = new Score(
+                    userName, PUZZLE_FIFTEEN,
+                    getPlayingSeconds(startMillis),
+                    Timestamp.valueOf(LocalDateTime.now()));
+            scoreService.insertScore(score);
+        } catch(ScoreException e) {
+            System.out.println("Couldn't save your score, check database connection.");
+        }
     }
 
     private static void inputComment() throws CommentException {
@@ -215,25 +222,24 @@ public class PuzzleFifteen implements Externalizable {
         input = readLine();
         List<Comment> comments = null;
 
-        Comment com = new Comment();
-        com.setPlayer(userName);
-        com.setGame(PUZZLE_FIFTEEN);
-        com.setComment(input);
-        com.setCommentedOn(Timestamp.valueOf(LocalDateTime.now()));
         try {
+            Comment com = new Comment(
+                    userName, PUZZLE_FIFTEEN,
+                    input, Timestamp.valueOf(LocalDateTime.now()));
             commentService.addComment(com);
         } catch (CommentException e) {
             System.out.println(dialog);
         }
+
         try {
             comments = commentService.getComments(PUZZLE_FIFTEEN);
+//        !!!nevyuzivat asserty na logicke podmienky v kode - su iba na testovanie
+//        assert comments != null;
+            for (Comment comment : comments) {
+                System.out.println(comment);
+            }
         } catch (CommentException e) {
             System.out.println(dialog);
-        }
-
-        assert comments != null;
-        for (Comment comment : comments) {
-            System.out.println(comment);
         }
     }
 
@@ -243,12 +249,10 @@ public class PuzzleFifteen implements Externalizable {
         input = Integer.parseInt(Objects.requireNonNull(readLine()));
 
         if (input >= 0 && input <= 5) {
-            Rating tempRating = new Rating();
-            tempRating.setPlayer(userName);
-            tempRating.setRating(input);
-            tempRating.setGame(PUZZLE_FIFTEEN);
-            tempRating.setRatedOn(Timestamp.valueOf(LocalDateTime.now()));
-            rating.setRating(tempRating);
+            Rating tempRating = new Rating(
+                    userName, PUZZLE_FIFTEEN, input,
+                    Timestamp.valueOf(LocalDateTime.now()));
+            ratingService.setRating(tempRating);
         } else {
             System.out.println("Incorrect format");
             System.out.println(dialog);
@@ -271,9 +275,7 @@ public class PuzzleFifteen implements Externalizable {
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         grid = (int[][]) in.readObject();
-
     }
-
 }
 
 

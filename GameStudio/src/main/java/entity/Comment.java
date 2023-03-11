@@ -9,6 +9,15 @@ public class Comment {
     private String comment;
     private Timestamp commentedOn;
 
+    public Comment() {}
+
+    public Comment(String player, String game, String comment, Timestamp commentedOn) {
+        this.player = player;
+        this.game = game;
+        this.comment = comment;
+        this.commentedOn = commentedOn;
+    }
+
     public int getId() {
         return id;
     }

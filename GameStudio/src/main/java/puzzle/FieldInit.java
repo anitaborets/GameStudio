@@ -1,13 +1,12 @@
 package puzzle;
 
 import org.apache.commons.lang3.ArrayUtils;
-import service.CommentServiceJDBS;
 
 import java.util.Random;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FieldInit {
+//    logger mas public v PuzzleFifteen, nechcela si ho tu pouzit?
     final static Logger LOGGER = Logger.getLogger(FieldInit.class.getName());
 
     static void fillArraysByRandomNumbers(int[][] grid, String[][] displayGrid) {

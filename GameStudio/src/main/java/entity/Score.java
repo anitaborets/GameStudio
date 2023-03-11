@@ -9,6 +9,14 @@ public class Score {
     private int score;
     private Timestamp playedOn;
 
+    public Score() {}
+
+    public Score(String player, String game, int score, Timestamp playedOn) {
+        this.player = player;
+        this.game = game;
+        this.score = score;
+        this.playedOn = playedOn;
+    }
 
     public int getId() {
         return id;

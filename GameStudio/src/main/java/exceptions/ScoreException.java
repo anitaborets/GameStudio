@@ -1,7 +1,7 @@
 package exceptions;
 
-public class ScoreException extends Exception{
-    public ScoreException(String message, String eMessage) {
+public class ScoreException extends Exception {
+    public ScoreException(String message) {
         super(message);
     }
 }

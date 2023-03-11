@@ -12,17 +12,17 @@ import java.util.logging.Logger;
 
 import static entity.Constants.*;
 
-public class CommentServiceJDBS implements CommentService {
+public class CommentServiceJDBC implements CommentService {
     private static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS comments (id INT PRIMARY KEY Generated Always as Identity, player VARCHAR(32) NOT NULL, game VARCHAR(32) NOT NULL, comment VARCHAR(200), commentedOn TIMESTAMP)";
     private static final String INSERT = "INSERT INTO comments (player,game,comment,commentedOn) VALUES (?, ?, ?, ?)";
     private static final String GET_ALL = "SELECT * FROM comments LIMIT 100";
     private static final String DELETE = "TRUNCATE comments";
     HikariDataSource ds = HikariCPDataSource.getHikariDataSource();
-    Logger LOGGER = Logger.getLogger(CommentServiceJDBS.class.getName());
+    Logger LOGGER = Logger.getLogger(CommentServiceJDBC.class.getName());
     Connection con = null;
     PreparedStatement pst = null;
 
-    public void createCommentTable() {
+    public void createCommentTable() throws CommentException {
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)){
            // con = ds.getConnection();
 
@@ -31,6 +31,7 @@ public class CommentServiceJDBS implements CommentService {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             System.out.println(e.getMessage());
+            throw new CommentException(e.getMessage());
         }
     }
 
@@ -49,6 +50,7 @@ public class CommentServiceJDBS implements CommentService {
             System.out.println(count);
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, e.getMessage(), e);
+            throw new CommentException(e.getMessage());
         }
         return count;
     }
@@ -73,6 +75,7 @@ public class CommentServiceJDBS implements CommentService {
             }
         } catch (SQLException e) {
             LOGGER.log(Level.INFO, e.getMessage(), e);
+            throw new CommentException(e.getMessage());
         }
         return comments;
     }

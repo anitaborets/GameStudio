@@ -11,6 +11,15 @@ public class Rating {
     private int rating;
     private Timestamp ratedOn;
 
+    public Rating() {}
+
+    public Rating(String player, String game, int rating, Timestamp ratedOn) {
+        this.player = player;
+        this.game = game;
+        this.rating = rating;
+        this.ratedOn = ratedOn;
+    }
+
     public int getId() {
         return id;
     }

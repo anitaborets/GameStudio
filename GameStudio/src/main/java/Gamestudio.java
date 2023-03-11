@@ -1,21 +1,16 @@
 import minesweeper.Minesweeper;
 import minesweeper.consoleui.ConsoleUI;
 import exceptions.RatingException;
-import exceptions.WrongFormatException;
 import puzzle.PuzzleFifteen;
-import service.CommentServiceJDBS;
+import service.CommentServiceJDBC;
 import service.RatingServiceJDBC;
 import service.ScoreServiceJDBC;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.SQLException;
 import java.util.Properties;
 import java.util.Scanner;
-
-import static minesweeper.Settings.*;
-import static minesweeper.Settings.BEGINNER;
 
 
 public class Gamestudio {
@@ -26,7 +21,7 @@ public class Gamestudio {
 
     private static long startMillis;
     public static final ScoreServiceJDBC scoreService = new ScoreServiceJDBC();
-    public static final CommentServiceJDBS commentService = new CommentServiceJDBS();
+    public static final CommentServiceJDBC commentService = new CommentServiceJDBC();
     public static final RatingServiceJDBC rating = new RatingServiceJDBC();
     private static final BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 

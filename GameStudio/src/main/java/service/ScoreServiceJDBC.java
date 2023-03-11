@@ -15,7 +15,7 @@ import static service.HikariCPDataSource.getHikariDataSource;
 
 public class ScoreServiceJDBC implements ScoreService {
     private static final String CREATE = "CREATE TABLE IF NOT EXISTS score (id INT PRIMARY KEY Generated Always as Identity, player VARCHAR(32) NOT NULL,  game VARCHAR(32) NOT NULL, score INT NOT NULL, playedOn TIMESTAMP)";
-    private static final String GET_ALL = "SELECT * FROM score ORDER BY score desc LIMIT 10";
+    private static final String GET_ALL = "SELECT * FROM score WHERE game LIKE ? ORDER BY score desc LIMIT 10";
     private static final String DELETE = "TRUNCATE score";
     private static final String INSERT = "INSERT INTO score (player,game,score,playedOn) VALUES (?, ?, ?, ?)";
     Connection con = null;
@@ -23,17 +23,18 @@ public class ScoreServiceJDBC implements ScoreService {
     HikariDataSource ds = getHikariDataSource();
     Logger LOGGER = Logger.getLogger(ScoreServiceJDBC.class.getName());
 
-    public void createScoreTable() {
+    public void createScoreTable() throws ScoreException {
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
             Statement stmt = con.createStatement();
             stmt.executeUpdate(CREATE);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             System.out.println(e.getMessage());
+            throw new ScoreException(e.getMessage());
         }
     }
 
-    public int insertScore(Score score) {
+    public int insertScore(Score score) throws ScoreException {
         int count = 0;
 
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)){
@@ -48,15 +49,17 @@ public class ScoreServiceJDBC implements ScoreService {
 
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
+            throw new ScoreException(e.getMessage());
         }
         return count;
     }
 
-    public List<Score> getBestScores() {
+    public List<Score> getBestScores(String gameName) throws ScoreException {
         List<Score> scores = new ArrayList<>();
         try {
             con = ds.getConnection();
             pst = con.prepareStatement(GET_ALL);
+            pst.setString(1, gameName);
             ResultSet results = pst.executeQuery();
             while (results.next()) {
                 Score score = new Score();
@@ -69,6 +72,7 @@ public class ScoreServiceJDBC implements ScoreService {
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
+            throw new ScoreException(e.getMessage());
         }
         return scores;
     }
@@ -80,7 +84,7 @@ public class ScoreServiceJDBC implements ScoreService {
             statement.executeUpdate(DELETE);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            throw new ScoreException(e.getMessage(), e.getMessage());
+            throw new ScoreException(e.getMessage());
         }
     }
 

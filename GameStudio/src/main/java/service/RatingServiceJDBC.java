@@ -24,7 +24,7 @@ public class RatingServiceJDBC implements RatingService {
     HikariDataSource ds = HikariCPDataSource.getHikariDataSource();
     Logger LOGGER = Logger.getLogger(RatingServiceJDBC.class.getName());
 
-    public void createRatingTable() {
+    public void createRatingTable() throws RatingException {
         //todo with property file
         try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
             //con = ds.getConnection();
@@ -33,6 +33,7 @@ public class RatingServiceJDBC implements RatingService {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             System.out.println(e.getMessage());
+            throw new RatingException(e.getMessage());
         }
     }
 
@@ -53,6 +54,7 @@ public class RatingServiceJDBC implements RatingService {
 
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                throw new RatingException(e.getMessage());
             }
         } else {
             try (Connection con = DriverManager.getConnection(URL, USER, PASSWORD)) {
@@ -67,6 +69,7 @@ public class RatingServiceJDBC implements RatingService {
 
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                throw new RatingException(e.getMessage());
             }
         }
 
@@ -75,7 +78,6 @@ public class RatingServiceJDBC implements RatingService {
 
     @Override
     public double getAverageRating(String game) throws RatingException {
-
         double rating = -1;
         try {
             con = ds.getConnection();
@@ -90,17 +92,16 @@ public class RatingServiceJDBC implements RatingService {
                  //pst.setString(1, game);
                 pst = con.prepareStatement(GET_AVG);
                 pst.setString(1,game);
-               results = pst.executeQuery();
+                results = pst.executeQuery();
 
                 while (results.next()) {
-
                      rating = results.getDouble(1);
                 }
-
-                }
-            } catch(SQLException e){
-                LOGGER.log(Level.SEVERE, e.getMessage(), e);
             }
+        } catch(SQLException e){
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+            throw new RatingException(e.getMessage());
+        }
 
         //averageRating = ratings.stream().mapToInt(Integer::intValue).summaryStatistics().getAverage();
         return rating;
