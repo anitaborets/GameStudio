@@ -1,4 +1,4 @@
-package minesweeper.service;
+package service;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -14,9 +14,7 @@ public class HikariCPDataSource {
 
         hikariConfig.setMaximumPoolSize(10);
         hikariConfig.setAutoCommit(false);
-        hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
-        hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
-        hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+
         HikariDataSource ds = new HikariDataSource(hikariConfig);
         return ds;
     }

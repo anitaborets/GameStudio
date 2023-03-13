@@ -83,13 +83,15 @@ public class Field {
         if (tile.getState() == Tile.State.CLOSED) {
             tile.setState(Tile.State.OPEN);
             if (tile instanceof Clue && ((Clue) tile).getValue() == 0) {
+//                todo: doplnit call na openAdjacentTiles
+//                (vzdy tu nechaj aspon koment, pretoze prazdny if vyzera divne)
             }
 
             if (tile instanceof Mine) {
                 tile.setState(Tile.State.OPEN);
-                for (int i = 0; i < rowCount; i++) {
-                    for (int j = 0; j < columnCount; j++) {
-                        openTile(i, j);
+                for (int r = 0; r < rowCount; r++) {
+                    for (int c = 0; c < columnCount; c++) {
+                        openTile(r, c);
                     }
                 }
                 state = GameState.FAILED;
@@ -98,12 +100,11 @@ public class Field {
 
             if (isSolved()) {
                 state = GameState.SOLVED;
-                for (int i = 0; i < rowCount; i++) {
-                    for (int j = 0; j < columnCount; j++) {
-                        openTile(i, j);
+                for (int r = 0; r < rowCount; r++) {
+                    for (int c = 0; c < columnCount; c++) {
+                        openTile(r, c);
                     }
-                }                return;
-
+                }
             }
         }
     }
@@ -118,11 +119,8 @@ public class Field {
         Tile tile = tiles[row][column];
         if (tile.getState() == Tile.State.CLOSED) {
             tile.setState(Tile.State.MARKED);
-            return;
-        }
-        if (tile.getState() == Tile.State.MARKED) {
+        } else if (tile.getState() == Tile.State.MARKED) {
             tile.setState(Tile.State.CLOSED);
-            return;
         }
     }
 
@@ -142,21 +140,20 @@ public class Field {
             return;
         }
 
-
         while (count > 0) {
-            int x = random.nextInt(rowCount);
-            int y = random.nextInt(columnCount);
-            if (tiles[x][y] == null) {
-                tiles[x][y] = new Mine();
+            int r = random.nextInt(rowCount);
+            int c = random.nextInt(columnCount);
+            if (tiles[r][c] == null) {
+                tiles[r][c] = new Mine();
                 count--;
             }
         }
 
         //pocet min v susednych dlazdiciac
-        for (int i = 0; i < rowCount; i++) {
-            for (int j = 0; j < columnCount; j++) {
-                if (tiles[i][j] == null) {
-                    tiles[i][j] = new Clue(countAdjacentMines(i, j));
+        for (int r = 0; r < rowCount; r++) {
+            for (int c = 0; c < columnCount; c++) {
+                if (tiles[r][c] == null) {
+                    tiles[r][c] = new Clue(countAdjacentMines(r, c));
                 }
             }
         }
@@ -173,9 +170,9 @@ public class Field {
 
     private int getNumberOf(Tile.State state) {
         int count = 0;
-        for (int i = 0; i < rowCount; i++) {
-            for (int j = 0; j < columnCount; j++) {
-                if (tiles[i][j].getState() == state) {
+        for (int r = 0; r < rowCount; r++) {
+            for (int c = 0; c < columnCount; c++) {
+                if (tiles[r][c].getState() == state) {
                     count++;
                 }
             }
@@ -224,8 +221,8 @@ public class Field {
     }
 
     private boolean outOfField(int nextRow, int nextColumn) {
-        return nextRow < 0 || nextColumn < 0 || nextRow >= rowCount || nextColumn >= columnCount;
+        return nextRow < 0 || nextColumn < 0
+                || nextRow >= rowCount
+                || nextColumn >= columnCount;
     }
-
-
 }

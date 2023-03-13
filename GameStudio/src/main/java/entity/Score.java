@@ -1,13 +1,22 @@
-package minesweeper.entity;
+package entity;
 
 import java.sql.Timestamp;
 
 public class Score {
     private int id;
     private String player;
+    private String game;
     private int score;
     private Timestamp playedOn;
 
+    public Score() {}
+
+    public Score(String player, String game, int score, Timestamp playedOn) {
+        this.player = player;
+        this.game = game;
+        this.score = score;
+        this.playedOn = playedOn;
+    }
 
     public int getId() {
         return id;
@@ -41,13 +50,20 @@ public class Score {
         this.playedOn = playedOn;
     }
 
+    public String getGame() {
+        return game;
+    }
+
+    public void setGame(String game) {
+        this.game = game;
+    }
+
     @Override
     public String toString() {
         return "Score{" +
-                "id=" + id +
-                ", player='" + player + '\'' +
+                "player='" + player + '\'' +
+                ", game='" + game + '\'' +
                 ", score=" + score +
-                ", playedOn=" + playedOn +
                 '}';
     }
 }

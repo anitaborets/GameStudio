@@ -1,12 +1,22 @@
-package minesweeper.entity;
+package entity;
 
 import java.sql.Timestamp;
 
 public class Comment {
     private int id;
     private String player;
+    private String game;
     private String comment;
     private Timestamp commentedOn;
+
+    public Comment() {}
+
+    public Comment(String player, String game, String comment, Timestamp commentedOn) {
+        this.player = player;
+        this.game = game;
+        this.comment = comment;
+        this.commentedOn = commentedOn;
+    }
 
     public int getId() {
         return id;
@@ -40,11 +50,20 @@ public class Comment {
         this.commentedOn = commentedOn;
     }
 
+    public String getGame() {
+        return game;
+    }
+
+    public void setGame(String game) {
+        this.game = game;
+    }
+
     @Override
     public String toString() {
         return "Comment{" +
                 "id=" + id +
                 ", player='" + player + '\'' +
+                ", game='" + game + '\'' +
                 ", comment='" + comment + '\'' +
                 ", commentedOn=" + commentedOn +
                 '}';

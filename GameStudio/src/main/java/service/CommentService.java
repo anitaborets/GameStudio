@@ -1,7 +1,7 @@
-package minesweeper.service;
+package service;
 
-import minesweeper.entity.Comment;
-import minesweeper.exceptions.CommentException;
+import entity.Comment;
+import exceptions.CommentException;
 
 import java.util.List;
 

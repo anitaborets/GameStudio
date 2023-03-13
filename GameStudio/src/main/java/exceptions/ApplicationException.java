@@ -1,4 +1,4 @@
-package minesweeper.exceptions;
+package exceptions;
 
 public class ApplicationException extends RuntimeException {
     private static final long serialVersionUID = 1L;
